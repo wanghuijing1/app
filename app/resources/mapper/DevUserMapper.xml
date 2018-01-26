@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/data/mybatis-3-mapper.dtd">
+<mapper namespace="cn.appsys.dao.devuser.DevUserMapper">
+	<select id="getLoginUser" resultType="DevUser">
+		select * from dev_user
+		<where>
+			<if test="devCode!=null and devCode!=''">
+				devCode=#{devCode}
+			</if>
+		</where>
+	</select>
+	<!-- 查询条件 -->
+	<select id="getDictionary" resultType="DataDictionary" parameterType="string">
+		SELECT * FROM `data_dictionary` WHERE typeCode=#{typeCode}
+	</select>
+	<!-- 分类 -->
+	<select id="getType" resultType="AppCategory" parameterType="int">
+		SELECT `id`,`categoryName` FROM `app_category` 
+		<where>
+			<if test="parentId==0">parentId is null
+			</if>
+			<if test="parentId!=0">
+			parentId=#{parentId}
+			</if>
+		</where>
+	</select>
+	<!-- appInfo查询 -->
+	<select id="getappinfolistselect" resultType="appInfo">
+		select a1.*,a2.valueName flatformName,a3.categoryName categoryLevel1Name,
+		a4.categoryName categoryLevel2Name,a5.categoryName categoryLevel3Name,
+		a6.valueName statusName,a7.versionNo
+		from app_info a1
+		LEFT JOIN (select * from data_dictionary where typeCode='APP_FLATFORM') a2 on a1.flatformId=a2.valueId
+		LEFT JOIN app_category a3 on a1.categoryLevel1=a3.id
+		LEFT JOIN app_category a4 on a1.categoryLevel2=a4.id
+		LEFT JOIN app_category a5 on a1.categoryLevel3=a5.id
+		LEFT JOIN (select * from data_dictionary where typeCode='APP_STATUS') a6 on a1.status=a6.valueId
+		LEFT JOIN app_version a7 on a1.versionId=a7.id
+		<trim prefix="where" prefixOverrides="and|or">
+			<if test="appInfo.softwareName!=null and appInfo.softwareName!=''">and a1.softwareName like concat('%',#{appInfo.softwareName},'%')</if>
+			<if test="appInfo.status!=null">and a1.status=#{appInfo.status}</if>
+			<if test="appInfo.flatformId!=null">and a1.flatformId=#{appInfo.flatformId}</if>
+			<if test="appInfo.categoryLevel1!=null">and a1.categoryLevel1=#{appInfo.categoryLevel1}</if>
+			<if test="appInfo.categoryLevel2!=null">and a1.categoryLevel2=#{appInfo.categoryLevel2}</if>
+			<if test="appInfo.categoryLevel3!=null">and a1.categoryLevel3=#{appInfo.categoryLevel3}</if>
+		</trim>
+		LIMIT #{currentPageNo},#{pageSize}
+	</select>
+	<!-- 总数 -->
+	<select id="count" resultType="int">
+		select count(1) from app_info a1
+		<trim prefix="where" prefixOverrides="and|or">
+			<if test="appInfo.softwareName!=null and appInfo.softwareName!=''">and a1.softwareName like concat('%',#{appInfo.softwareName},'%')</if>
+			<if test="appInfo.status!=null">and a1.status=#{appInfo.status}</if>
+			<if test="appInfo.flatformId!=null">and a1.flatformId=#{appInfo.flatformId}</if>
+			<if test="appInfo.categoryLevel1!=null">and a1.categoryLevel1=#{appInfo.categoryLevel1}</if>
+			<if test="appInfo.categoryLevel2!=null">and a1.categoryLevel2=#{appInfo.categoryLevel2}</if>
+			<if test="appInfo.categoryLevel3!=null">and a1.categoryLevel3=#{appInfo.categoryLevel3}</if>
+		</trim>
+	</select>
+</mapper>
